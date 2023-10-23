@@ -22,61 +22,91 @@ class IceCreamParlorResult {
      */
 
     public static List<Integer> icecreamParlor(int m, List<Integer> arr) {
+        //unassigned friends are represented by `-1`. Start the flavour indexes
+        //by marking all 3 friends as unassigned. 
         int[] baseIndexes = new int[] {-1, -1, -1};
         
-        int[] result = findClosestBranchToTarget(baseIndexes, arr, m);
+        //start the result with all -1, just so it'll have a `sumIndexValues(...)` of 0.
+        int[] result = new int[] {-1, -1, -1};
+
+        //this will mutate `baseIndexes` to hold the best possible solution
+        findClosestBranchToTarget(baseIndexes, result, arr, m);
         
-        ArrayList<Integer> listResult = new ArrayList<>(3);
+        ArrayList<Integer> listResult = new ArrayList<>();
         
-        for(int i = 0; i < result.length; i++) listResult.add(result[i]);
+        for(int i = 0; i < result.length; i++) listResult.add(result[i] + 1);
         
         return listResult;
     }
     
-    private static int[] findClosestBranchToTarget(int[] currentIndexes, List<Integer> amounts, int target) {
-        //currentIndexes will always have length 3, since there are 3 friends
-        int firstUnfilledIndex = currentIndexes[0] == -1 ? 0 
-                                : currentIndexes[1] == -1 ? 1
-                                : currentIndexes[2] == -1 ? 2
-                                : -1;        
+    /**
+    Main recursive function
+    currentIndexes: governs where we are in the tree of possibilities.
+    bestCandidateSoFar: the best leaf of the tree. Whenever a leaf is reached, it's checked,
+        and if it surpasses, bestCandidateSoFar is overwritten
+    amounts: the list of flavour prices
+    target: the amount of money to spend
+    */
+    private static void findClosestBranchToTarget(int[] currentIndexes, int[] bestCandidateSoFar, List<Integer> amounts, int target) {
+        //open slots (i.e. unassigned friends) are represented by `-1`. Find the 
+        //first unassigned friend's index. If all friends are assigned to a flavour,
+        //then this will be `-1`.
+        int firstUnfilledIndex = findFirstIndexOfNegative(currentIndexes);
+        
         //if all indexes are filled, then don't bother to search branches from this 
         //possibility, since there aren't any!
+        //instead, evaluate the leaf of indexes we've found ourselves in
         //this is the base case.
-        if(firstUnfilledIndex == -1) return currentIndexes;
-        
-        int largestAmountSuccessfulIndex = 0;
-        int largestAmountSuccessfulAmount = 0;
+        if(firstUnfilledIndex == -1) {
+            //if this leaf is better than the best candidate:
+            if(sumIndexValues(currentIndexes, amounts) > sumIndexValues(bestCandidateSoFar, amounts)) {
+                // overwrite the best candidate with this leaf
+                arrayAssign(bestCandidateSoFar, currentIndexes);
+            }
+            //and regardless of how good this leaf is, early return
+            return;
+        };
         
         //search all other possibilities 
         for(int flavourIndex = 0; flavourIndex < amounts.size(); flavourIndex++) {
             //if a previous friend has this flavour, continue, since 
             //selecting the same flavour breaks the 'distinct flavour'
             //requirement
-            if(hasValueBefore(currentIndexes, flavourIndex, firstUnfilledIndex)) continue;
+            if(contains(currentIndexes, flavourIndex)) continue;
             
             //check if accepting this flavour would be too expensive 
             //if so, continue
             if(sumIndexValues(currentIndexes, amounts) + amounts.get(flavourIndex) > target) continue;
             
-            //tentatively accept this flavour, and check further branches
-            //find the largest legal combination from all current branches
+            //tentatively accept this flavour and check further branches down the tree
+            //after recursing, `bestCandidateSoFar` holds the largest legal (not too expensive, distinct)
+            //possible branch.
             currentIndexes[firstUnfilledIndex] = flavourIndex;
-            int[] largestBranch = findClosestBranchToTarget(currentIndexes, amounts, target);
-            int largestBranchValue = sumIndexValues(largestBranch, amounts);
-            
-            if(largestBranchValue > largestAmountSuccessfulAmount) {
-                largestAmountSuccessfulAmount = largestBranchValue;
-                largestAmountSuccessfulIndex = flavourIndex;
-            }
+            findClosestBranchToTarget(currentIndexes, bestCandidateSoFar, amounts, target);
+            //empty the current friend's slot for the next iteration of the loop
+            currentIndexes[firstUnfilledIndex] = -1;
         }
         
-        //after scanning all branches, set the index to the largest one found
-        currentIndexes[firstUnfilledIndex] = largestAmountSuccessfulIndex;
-        
-        //and return the result array
-        return currentIndexes;
+        //after looping, `bestCandidateSoFar` holds the largest legal branch over all possibilities
     }
     
+    //helper method to copy from one array to another. 
+    //arrays must have same length
+    private static void arrayAssign(int[] target, int[] source) {
+        for(int i = 0; i < target.length; i++) {
+            target[i] = source[i];
+        }
+    }
+    
+    //helper method to find the first index of a negative value
+    private static int findFirstIndexOfNegative(int[] a) {
+        for(int i = 0; i < a.length; i++) {
+            if(a[i] < 0) return i;
+        }
+        return -1;
+    }
+    
+    //helper method to sum values, given an array of indexes into a list of amounts
     private static int sumIndexValues(int[] indexes, List<Integer> amounts) {
         int sum = 0;
         for(int i : indexes) {
@@ -85,8 +115,9 @@ class IceCreamParlorResult {
         return sum;
     }
     
-    private static boolean hasValueBefore(int[] arr, int value, int index) {
-        for(int i = 0; i < index; i++) {
+    //helper method: does array contain value?
+    private static boolean contains(int[] arr, int value) {
+        for(int i = 0; i < arr.length; i++) {
             if (arr[i] == value) return true;
         }
         return false;
@@ -109,7 +140,7 @@ public class IceCreamParlorSolution {
 
                 List<Integer> arr = Stream.of(bufferedReader.readLine().replaceAll("\\s+$", "").split(" "))
                     .map(Integer::parseInt)
-                    .collect(toList());
+                   .collect(toList());
 
                 List<Integer> result = IceCreamParlorResult.icecreamParlor(m, arr);
 
@@ -128,3 +159,5 @@ public class IceCreamParlorSolution {
         bufferedWriter.close();
     }
 }
+
+
