@@ -4,6 +4,7 @@
 > array; I moved the results to an explicit extra parameter.
 > 
 > If you want to grade on the version with minimal edits, please [use commit `f6225e997752fcb41f2d2626aa5e586acfa68763`](https://github.com/chlohal/csci-160-quiz-06/tree/f6225e997752fcb41f2d2626aa5e586acfa68763).
+>
 > If you want to grade on the pre-edit version, please [use commit `bb7b5d0a7a5f25c6128421db1464f039dcfb6eba`](https://github.com/chlohal/csci-160-quiz-06/tree/bb7b5d0a7a5f25c6128421db1464f039dcfb6eba).
 
 # Question 1
