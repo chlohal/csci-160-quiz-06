@@ -28,7 +28,7 @@ class IceCreamParlorResult {
         
         ArrayList<Integer> listResult = new ArrayList<>(3);
         
-        for(int i = 0; i < result.length; i++) listResult.set(i, result[i]);
+        for(int i = 0; i < result.length; i++) listResult.add(result[i]);
         
         return listResult;
     }
